@@ -2,114 +2,106 @@ package com.android.mytaskseat.view.Activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Base64;
-import android.util.Log;
-import android.widget.EditText;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.widget.TableLayout;
+import android.widget.TableRow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.mytaskseat.Model.GetSeatsResponse;
-import com.android.mytaskseat.Model.RequestModel;
+import com.android.mytaskseat.Model.SeatMap;
 import com.android.mytaskseat.Network.ApiClient;
 import com.android.mytaskseat.Network.ApiInterface;
 import com.android.mytaskseat.R;
 import com.android.mytaskseat.view.Adapter.SeatsAdapter;
-import com.scottyab.aescrypt.AESCrypt;
-import com.tozny.crypto.android.AesCbcWithIntegrity;
 
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.security.GeneralSecurityException;
-import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
-
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 import static com.tozny.crypto.android.AesCbcWithIntegrity.generateKeyFromPassword;
-import static com.tozny.crypto.android.AesCbcWithIntegrity.generateSalt;
-import static com.tozny.crypto.android.AesCbcWithIntegrity.saltString;
 
 public class MainActivity extends AppCompatActivity {
 
     private int mNumber;
     private List<String> mKeys = new ArrayList<>();
-    private String mKeySha256,mKeyValue, mEncryptKey, mMdEnryptKey,mKeysValues;
+    private String mKeySha256, mKeyValue, mEncryptKey, mMdEnryptKey, mKeysValues, mDecyptKey;
     private static final String ALGORITHM = "AES";
-    private RecyclerView mSeatsRecyclerView;
-    private GridLayoutManager mLayoutManager;
-    private SeatsAdapter mAdapter;
+    private List<SeatMap> mSeatMap = new ArrayList<>();
+    private List<String> mAllSeats = new ArrayList<>();
+    List<String> mSeats = new ArrayList<String>();
+    int seatSize = 100;
+    int seatGaping = 10;
+    TableLayout layout;
+    int count = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initViews();
-        setViews();
 
-        mKeySha256 = sha256( "1234");
+        mKeySha256 = sha256("1234");
 
-        mMdEnryptKey = md5("sha256",mKeySha256);
+        mMdEnryptKey = md5(mKeySha256);
 
         mNumber = CreateRandomNo();
 
         switch (mNumber) {
             case 1:
                 mKeysValues = "MD5";
-                mKeyValue = md55( "1234");
+                mKeyValue = md5(mMdEnryptKey);
                 break;
 
             case 2:
                 mKeysValues = "SHA1";
-                mKeyValue = sha1( "1234");
+                mKeyValue = sha1(mMdEnryptKey);
                 break;
 
             case 3:
                 mKeysValues = "SHA256";
-                mKeyValue = sha256( "1234");
+                mKeyValue = sha256(mMdEnryptKey);
                 break;
 
             case 4:
                 mKeysValues = "SHA512";
-                mKeyValue = sha512( "1234");
+                mKeyValue = sha512(mMdEnryptKey);
                 break;
+
         }
 
-        try {
-            mEncryptKey = AESCrypt.encrypt(mMdEnryptKey,String.valueOf(mNumber));
-        } catch (GeneralSecurityException e) {
-            e.printStackTrace();
-        }
 
         ApiInterface apiInterface = ApiClient.getClient().create(ApiInterface.class);
-        RequestModel requestModel = new RequestModel();
-        requestModel.setAuthKey(mNumber);
-        requestModel.setPassword(1234);
-        Call<GetSeatsResponse> call = apiInterface.getSeats(mEncryptKey, requestModel);
+
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("auth_key", String.valueOf(mNumber));
+        params.put("password", "1234");
+
+        Call<GetSeatsResponse> call = apiInterface.getSeats(mKeyValue, params);
         call.enqueue(new Callback<GetSeatsResponse>() {
             @Override
             public void onResponse(Call<GetSeatsResponse> call, Response<GetSeatsResponse> response) {
-                if(response.body() != null) {
+                if (response.body() != null) {
                     if (response.body().getStatus() == 200) {
                         onSeatsResultSuccess(response.body());
                     } else {
                         onSeatsResultFailed(response.message());
                     }
-                }else{
+                } else {
                     onSeatsResultFailed(response.message());
                 }
             }
@@ -122,30 +114,69 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void setViews() {
-        mLayoutManager = (new GridLayoutManager(this, 7));
-        mSeatsRecyclerView.setLayoutManager(mLayoutManager);
-        mSeatsRecyclerView.setNestedScrollingEnabled(false);
-        mSeatsRecyclerView.setItemAnimator(null);
-        mAdapter = new SeatsAdapter(this);
-        mSeatsRecyclerView.setAdapter(mAdapter);
-    }
-
     private void onSeatsResultFailed(String message) {
         Toast.makeText(this, "Error!! Invalid key!! Please try again!!", Toast.LENGTH_SHORT).show();
     }
 
     private void onSeatsResultSuccess(GetSeatsResponse body) {
         if (body.getSeatMap() != null) {
-            mAdapter.setSeats(body.getSeatMap());
+            mSeatMap = body.getSeatMap();
+
+            mAllSeats.add(mSeatMap.get(0).getSeatRow1());
+            mAllSeats.add(mSeatMap.get(1).getSeatRow2());
+            mAllSeats.add(mSeatMap.get(2).getSeatRow3());
+            mAllSeats.add(mSeatMap.get(3).getSeatRow4());
+            mAllSeats.add(mSeatMap.get(4).getSeatRow5());            mAllSeats.add(mSeatMap.get(5).getSeatRow6());
+            mAllSeats.add(mSeatMap.get(6).getSeatRow7());
+            mAllSeats.add(mSeatMap.get(7).getSeatRow8());
+            mAllSeats.add(mSeatMap.get(8).getSeatRow9());
+            mAllSeats.add(mSeatMap.get(9).getSeatRow10());
+            mAllSeats.add(mSeatMap.get(10).getSeatRow11());
+            mAllSeats.add(mSeatMap.get(11).getSeatRow12());
+            mAllSeats.add(mSeatMap.get(12).getSeatRow13());
+
+
+            for (int i = 0; i < mAllSeats.size(); i++) {
+                TableRow row = new TableRow(this);
+                TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT);
+                row.setLayoutParams(lp);
+                layout.addView(row, i);
+                String mSeatStrings = mAllSeats.get(i);
+                mSeats = Arrays.asList(mSeatStrings.split(","));
+                for (int j = 0; j < mSeats.size(); j++) {
+                    if (!mSeats.get(j).equals("0")) {
+                        String[] parts = mSeats.get(j).split("-");
+                        TextView tv = new TextView(this);
+                        TableRow.LayoutParams params = new TableRow.LayoutParams(seatSize, seatSize);
+                        tv.setLayoutParams(params);
+                        tv.setPadding(0, 0, 0, 2 * seatGaping);
+                        tv.setGravity(Gravity.CENTER);
+                        tv.setBackgroundResource(R.drawable.ic_seats_book);
+                        tv.setTextColor(Color.BLACK);
+                        tv.setText(parts[3]);
+                        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 9);
+                        row.addView(tv, j);
+                    } else {
+                        TextView tv = new TextView(this);
+                        TableRow.LayoutParams params = new TableRow.LayoutParams(seatSize, seatSize);
+                        tv.setLayoutParams(params);
+                        tv.setPadding(0, 0, 0, 2 * seatGaping);
+                        tv.setGravity(Gravity.CENTER);
+                        tv.setTextColor(Color.WHITE);
+                        tv.setText("");
+                        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 9);
+                        row.addView(tv, j);
+                    }
+                }
+            }
+
         }
     }
 
-    private String sha512(/*String sha512,*/ String password) {
+    private String sha512( String password) {
         String generatedPassword = null;
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-512");
-//            md.update(sha512.getBytes());
             byte[] bytes = md.digest(password.getBytes());
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < bytes.length; i++) {
@@ -158,11 +189,10 @@ public class MainActivity extends AppCompatActivity {
         return generatedPassword;
     }
 
-    private String sha256(/*String sha256,*/ String password) {
+    private String sha256( String password) {
         String generatedPassword = null;
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-//            md.update(sha256.getBytes());
             byte[] bytes = md.digest(password.getBytes());
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < bytes.length; i++) {
@@ -175,11 +205,10 @@ public class MainActivity extends AppCompatActivity {
         return generatedPassword;
     }
 
-    private String sha1(/*String sha1,*/ String password) {
+    private String sha1( String password) {
         String generatedPassword = null;
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-1");
-//            md.update(sha1.getBytes());
             byte[] bytes = md.digest(password.getBytes());
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < bytes.length; i++) {
@@ -192,13 +221,13 @@ public class MainActivity extends AppCompatActivity {
         return generatedPassword;
     }
 
-    public String md55(/*String mKeyValue,*/ String password) {
+    public String md5(String mKeyValue) {
         MessageDigest mdEnc = null;
         String generatedPassword = null;
 
         try {
             mdEnc = MessageDigest.getInstance("MD5");
-            byte[] bytes = mdEnc.digest(password.getBytes());
+            byte[] bytes = mdEnc.digest(mKeyValue.getBytes());
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < bytes.length; i++) {
                 sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
@@ -207,39 +236,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (NoSuchAlgorithmException e) {
             System.out.println("Exception while encrypting to md5");
             e.printStackTrace();
-        } // Encryption algorithm
-//        mdEnc.update(mKeyValue.getBytes(), 0, mKeyValue.length());
-
-//        mdEnc.update(password.getBytes(), 0, password.length());
-//        String md5 = new BigInteger(1, mdEnc.digest()).toString(16);
-//        while (md5.length() < 32) {
-//            md5 = "0" + md5;
-//        }
-        return generatedPassword;
-    }
-
-    public String md5(String mKeyValue, String password) {
-        MessageDigest mdEnc = null;
-        String generatedPassword = null;
-
-        try {
-            mdEnc = MessageDigest.getInstance("MD5");
-        } catch (NoSuchAlgorithmException e) {
-            System.out.println("Exception while encrypting to md5");
-            e.printStackTrace();
-        } // Encryption algorithm
-        mdEnc.update(mKeyValue.getBytes(), 0, mKeyValue.length());
-        byte[] bytes = mdEnc.digest(password.getBytes());
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < bytes.length; i++) {
-            sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
         }
-        generatedPassword = sb.toString();
-//        mdEnc.update(password.getBytes(), 0, password.length());
-//        String md5 = new BigInteger(1, mdEnc.digest()).toString(16);
-//        while (md5.length() < 32) {
-//            md5 = "0" + md5;
-//        }
         return generatedPassword;
     }
 
@@ -250,6 +247,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        mSeatsRecyclerView = findViewById(R.id.rv_seats);
+        layout = findViewById(R.id.layoutSeat);
     }
 }

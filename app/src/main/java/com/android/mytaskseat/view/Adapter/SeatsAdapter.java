@@ -1,6 +1,7 @@
 package com.android.mytaskseat.view.Adapter;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +23,7 @@ import java.util.List;
 public class SeatsAdapter extends RecyclerView.Adapter<SeatsAdapter.ViewHolder> {
 
     private Context mContext;
-    private List<SeatMap> mSeatMap = new ArrayList<>();
+    private List<String> mSeatMap = new ArrayList<>();
     private String mSeats;
     private String[] mSeat1;
     List<String> mAllSeats = new ArrayList<String>();
@@ -42,13 +43,15 @@ public class SeatsAdapter extends RecyclerView.Adapter<SeatsAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 //        Glide.with(mContext).load(mSeatMap.get(position).getSeatRow1()).into(holder.poster);
-        mSeats = mSeatMap.get(position).getSeatRow();
+        mSeats = mSeatMap.get(position);
         mAllSeats = Arrays.asList(mSeats.split(","));
         for(int i=0;i<mAllSeats.size();i++) {
-            if (!mAllSeats.equals(0)) {
+            if (!mAllSeats.get(i).equals("0")) {
                 String[] parts = mAllSeats.get(i).split("-");
-                holder.mSeatName.setText(parts[2]);
+//                holder.mSeatsImage.setBackgroundColor(Color.BLACK);
+                holder.mSeatName.setText(parts[3]);
             }else {
+//                holder.mSeatsImage.setBackgroundColor(Color.TRANSPARENT);
                 holder.mSeatName.setText("");
             }
         }
@@ -60,7 +63,7 @@ public class SeatsAdapter extends RecyclerView.Adapter<SeatsAdapter.ViewHolder> 
         return mSeatMap.size();
     }
 
-    public void setSeats(List<SeatMap> seatMap) {
+    public void setSeats(List<String> seatMap) {
         mSeatMap = seatMap;
         notifyDataSetChanged();
     }

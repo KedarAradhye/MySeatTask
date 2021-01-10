@@ -12,7 +12,9 @@
         <ImageView
             android:id="@+id/iv_seat"
             android:layout_width="60dp"
-            android:layout_height="60dp"/>
+            android:layout_height="60dp"
+            android:background="@color/black"
+           />
 
         <TextView
             android:id="@+id/tv_seat_name"
@@ -21,6 +23,7 @@
             android:text="@string/l21"
             android:layout_gravity="center"
             android:textSize="@dimen/text_extralarge"
+            android:textColor="@color/black"
             android:textStyle="bold"
             />
 

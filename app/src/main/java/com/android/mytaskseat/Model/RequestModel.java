@@ -8,24 +8,24 @@ public class RequestModel {
 
     @SerializedName("auth_key")
     @Expose
-    private Integer authKey;
+    private String authKey;
     @SerializedName("password")
     @Expose
-    private Integer password;
+    private String password;
 
-    public Integer getAuthKey() {
+    public String getAuthKey() {
         return authKey;
     }
 
-    public void setAuthKey(Integer authKey) {
+    public void setAuthKey(String authKey) {
         this.authKey = authKey;
     }
 
-    public Integer getPassword() {
+    public String getPassword() {
         return password;
     }
 
-    public void setPassword(Integer password) {
+    public void setPassword(String password) {
         this.password = password;
     }
 
