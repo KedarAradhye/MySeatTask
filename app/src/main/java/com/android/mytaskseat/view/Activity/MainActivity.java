@@ -1,8 +1,6 @@
 package com.android.mytaskseat.view.Activity;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.graphics.Color;
 import android.os.Bundle;
@@ -18,7 +16,6 @@ import com.android.mytaskseat.Model.SeatMap;
 import com.android.mytaskseat.Network.ApiClient;
 import com.android.mytaskseat.Network.ApiInterface;
 import com.android.mytaskseat.R;
-import com.android.mytaskseat.view.Adapter.SeatsAdapter;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -126,7 +123,8 @@ public class MainActivity extends AppCompatActivity {
             mAllSeats.add(mSeatMap.get(1).getSeatRow2());
             mAllSeats.add(mSeatMap.get(2).getSeatRow3());
             mAllSeats.add(mSeatMap.get(3).getSeatRow4());
-            mAllSeats.add(mSeatMap.get(4).getSeatRow5());            mAllSeats.add(mSeatMap.get(5).getSeatRow6());
+            mAllSeats.add(mSeatMap.get(4).getSeatRow5());
+            mAllSeats.add(mSeatMap.get(5).getSeatRow6());
             mAllSeats.add(mSeatMap.get(6).getSeatRow7());
             mAllSeats.add(mSeatMap.get(7).getSeatRow8());
             mAllSeats.add(mSeatMap.get(8).getSeatRow9());
@@ -154,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
                         tv.setBackgroundResource(R.drawable.ic_seats_book);
                         tv.setTextColor(Color.BLACK);
                         tv.setText(parts[3]);
-                        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 9);
+                        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
                         row.addView(tv, j);
                     } else {
                         TextView tv = new TextView(this);
